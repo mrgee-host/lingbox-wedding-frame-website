@@ -46,11 +46,11 @@ body{padding-bottom:108px}
 <div class="field" style="margin-bottom: 15px;">
   <label>Pilih Acuan Tema Utama*</label>
   <div style="display: flex; gap: 16px; margin-top: 6px;">
-    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 13px; cursor: pointer;">
-      <input type="radio" name="mainTheme" value="1" checked> Frame 1
+    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 13px; cursor: pointer; margin: 0;">
+      <input type="radio" name="mainTheme" value="1" checked style="width: auto; margin: 0;"> Frame 1
     </label>
-    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 13px; cursor: pointer;">
-      <input type="radio" name="mainTheme" value="2"> Frame 2
+    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 13px; cursor: pointer; margin: 0;">
+      <input type="radio" name="mainTheme" value="2" style="width: auto; margin: 0;"> Frame 2
     </label>
   </div>
   <p class="help-note" style="margin-top: 8px;">Pilihan ini akan digunakan sebagai tema utama photobooth, termasuk welcome screen dan GIF.</p>
@@ -174,7 +174,26 @@ function chooseActiveFrame(){const f=frame();if(!f)return;if(pendingReplaceSlot!
 function replaceWithActive(slot){const f=frame();if(!f)return;const otherSlot=slot===0?1:0;if(selectedFrameNos[otherSlot]===f.no)return alert('Frame ini sudah digunakan sebagai pilihan '+(otherSlot+1)+'. Silakan pilih desain lain.');selectedFrameNos[slot]=f.no;updateSelectionUi();render();closePreview()}
 function removeSelection(no){const index=selectedFrameNos.indexOf(Number(no));if(index>=0)selectedFrameNos.splice(index,1);updateSelectionUi();render();if(activeFrameNo)updatePreviewChoiceUi()}
 function slotHtml(f,index){if(!f)return 'Frame '+(index+1)+' belum dipilih';return '<img src="'+f.widgetUrl+'" alt=""><div class="slot-text"><b>'+code(f)+'</b><small>'+f.title+'</small></div><button class="slot-remove" type="button" data-remove="'+f.no+'" aria-label="Hapus '+code(f)+'">×</button><button class="slot-open" type="button" data-open="'+f.no+'" aria-label="Buka '+code(f)+'"></button>'}
-function updateSelectionUi(){document.getElementById('selectedCount').textContent=selectedFrameNos.length;const hint=document.getElementById('selectionHint'),next=document.getElementById('continueCheckout');if(pendingReplaceSlot!==null){hint.textContent='Mode ganti Frame '+(pendingReplaceSlot+1)+': buka desain baru lalu klik gunakan sebagai pengganti.';next.disabled=false;next.textContent='Batalkan Ganti Frame'}else{hint.textContent=selectedFrameNos.length===0?'Pilih dua desain. Frame 1 akan menjadi tema utama photobooth.':selectedFrameNos.length===1?'Frame 1 akan menjadi tema utama photobooth. Sekarang pilih Frame 2.':'Dua frame sudah siap. Lanjutkan untuk mengisi detail pernikahan.';next.disabled=selectedFrameNos.length!==2;next.textContent=selectedFrameNos.length===2?'Lanjut Isi Detail':'Pilih '+(2-selectedFrameNos.length)+' Frame Lagi'};[0,1].forEach(index=>{const el=document.getElementById('selectedSlot'+index),f=frameByNo(selectedFrameNos[index]);el.className='selection-slot'+(f?'':' empty');el.innerHTML=slotHtml(f,index)})}
+function updateSelectionUi(){
+    document.getElementById('selectedCount').textContent=selectedFrameNos.length;
+    const hint=document.getElementById('selectionHint'),next=document.getElementById('continueCheckout');
+    if(pendingReplaceSlot!==null){
+        hint.textContent='Mode ganti Frame '+(pendingReplaceSlot+1)+': buka desain baru lalu klik gunakan sebagai pengganti.';
+        next.disabled=false;
+        next.textContent='Batalkan Ganti Frame'
+    } else {
+        hint.textContent = selectedFrameNos.length===0 ? 'Pilih dua desain frame untuk melanjutkan.' :
+                           selectedFrameNos.length===1 ? 'Satu frame dipilih. Sekarang pilih Frame 2.' :
+                           'Dua frame sudah siap. Lanjutkan untuk mengisi detail pernikahan.';
+        next.disabled=selectedFrameNos.length!==2;
+        next.textContent=selectedFrameNos.length===2?'Lanjut Isi Detail':'Pilih '+(2-selectedFrameNos.length)+' Frame Lagi'
+    };
+    [0,1].forEach(index=>{
+        const el=document.getElementById('selectedSlot'+index),f=frameByNo(selectedFrameNos[index]);
+        el.className='selection-slot'+(f?'':' empty');
+        el.innerHTML=slotHtml(f,index)
+    })
+}
 function saveOrderState(){orderState.date=weddingDate.value;orderState.names=coupleNames.value.trim();orderState.hash=hashtag.value.trim();orderState.info=additionalInfo.value.trim()}
 function loadOrderState(){weddingDate.value=orderState.date;coupleNames.value=orderState.names;hashtag.value=orderState.hash;additionalInfo.value=orderState.info}
 function renderOrderFrames(){orderSelectedFrames.innerHTML='';selectedFrameNos.forEach((no,index)=>{const f=frameByNo(no);if(!f)return;const s=ensure(f),value=displayColor(s),card=document.createElement('div');card.className='order-frame';card.innerHTML='<div class="order-frame-head"><img src="'+f.widgetUrl+'" alt=""><div><span class="order-frame-code">PILIHAN '+(index+1)+' · '+code(f)+'</span><span class="order-frame-title">'+f.title+'</span></div><button class="order-change-frame" data-slot="'+index+'" type="button">Ganti Frame</button></div><div class="field"><label>Warna frame</label><div class="color-row"><div class="color-picker-wrap"><button class="order-color-picker color-picker-button" data-frame="'+f.no+'" type="button" aria-label="Buka pilihan warna"><span class="color-picker-swatch" style="background:'+value+'"></span></button></div><input class="order-color-hex" data-frame="'+f.no+'" value="'+(s.colorTouched?value:'Default')+'"><button class="color-clear order-color-clear" data-frame="'+f.no+'" type="button">Clear</button></div></div>';orderSelectedFrames.appendChild(card);ensureDefaultColor(f).then(()=>{if(orderModal.classList.contains('open'))refreshOrderFrameColor(f.no)})})}
